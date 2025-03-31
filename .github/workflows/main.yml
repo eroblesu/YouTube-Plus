@@ -1,4 +1,4 @@
-name: Create YouTube Plus app
+name: Create YouTube Plus app 
 
 on:
   workflow_dispatch:
@@ -43,6 +43,19 @@ jobs:
         id: download_youtube
         run: wget "${{ inputs.ipa_url }}" --no-verbose -O ${{ github.workspace }}/youtube.ipa
 
+      - name: Verificar archivo IPA
+        run: |
+          ls -lh ${{ github.workspace }}/youtube.ipa
+          file ${{ github.workspace }}/youtube.ipa
+
+      - name: Probar extracción manual
+        run: unzip -l ${{ github.workspace }}/youtube.ipa || echo "Error al descomprimir"
+
+      - name: Renombrar IPA a ZIP y probar extracción
+        run: |
+          cp ${{ github.workspace }}/youtube.ipa ${{ github.workspace }}/youtube.zip
+          unzip -l ${{ github.workspace }}/youtube.zip || echo "Error al descomprimir como ZIP"
+
       - name: Download YouTube Plus
         id: download_ytp
         run: |
@@ -58,7 +71,9 @@ jobs:
           mv *.appex ${{ github.workspace }}
 
       - name: Inject tweak into IPA
-        run: cyan -i youtube.ipa -o YouTubePlus_${{ inputs.tweak_version }}.ipa -uwf ytplus.deb OpenYoutubeSafariExtension.appex
+        run: |
+          set -x
+          cyan -i youtube.ipa -o YouTubePlus_${{ inputs.tweak_version }}.ipa -uwf ytplus.deb OpenYoutubeSafariExtension.appex
 
       - name: Upload to GitHub Releases
         uses: softprops/action-gh-release@v2.0.1
